@@ -9,3 +9,10 @@ class CustomUserAdmin(admin.ModelAdmin):
     search_fields = ('username', 'email')
     list_filter = ('role', 'is_staff', 'is_active')
 
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):       
+    list_display = ('user', 'phone', 'address')
+    search_fields = ('user__username', 'phone')
+    list_filter = ('user__role',)
+    
