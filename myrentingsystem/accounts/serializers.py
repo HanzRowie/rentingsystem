@@ -41,3 +41,30 @@ class RegisterSerializer(serializers.Serializer):
       user.save()
       return user
 
+class LoginSerializer(serializers.Serializer):
+    username =  serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        if not User.objects.filter(username=data['username']).exists():
+            raise serializers.ValidationError('User not found')
+        return data
+        
+    def get_jwt_token(self, validated_data):
+        user = authenticate(username = validated_data['username'],password = validated_data["password"])
+        
+        if not user:
+            raise  serializers.ValidationError('Invalid credentials')
+        
+        refresh  = RefreshToken.for_user(user)
+
+        return  {
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'username': user.username,
+                'email': user.email
+            },
+            'role': user.role if hasattr(user, 'role') else 'user'
+        }
+
