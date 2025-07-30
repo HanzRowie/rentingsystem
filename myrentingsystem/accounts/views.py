@@ -83,4 +83,17 @@ class ProfileViwe(APIView):
             return Response({'msg':"Profile Updated Successfully"},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
+    def patch(self,request):
+        profile = get_object_or_404(Profile,user = request.user)
+        serializers = ProfileSerializers(profile,data = request.data, partial = True)
+        if serializers.is_valid():
+            serializers.save()
+            return Response({'msg':"profile updated successfully"},status=status.HTTP_200_OK)
+        return Response(serializers.errors,status=status.HTTP_400_BAD_REQUEST)
     
+    def delete(self,request):
+        profile = get_object_or_404(Profile, user=request.user)
+        profile.delete()
+        return Response({
+            "msg":"Profile successfully deleted"
+        },status=status.HTTP_204_NO_CONTENT)
