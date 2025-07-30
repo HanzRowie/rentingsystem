@@ -2,5 +2,6 @@ from django.urls import path
 from accounts import views
 
 urlpatterns = [
-    path('profile/<int:user_id>/', views.profile, name='profile'),  
+   path('register/',views.RegisterView.as_view(),name='register'),
+   path('login/',views.LoginView.as_view(),name='login')  
 ]
