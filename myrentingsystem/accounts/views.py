@@ -61,4 +61,16 @@ class ProfileViwe(APIView):
         profile = get_object_or_404(Profile, user=request.user)
         serializer = ProfileSerializers(profile)
         return Response(serializer.data,status=status.HTTP_200_OK)
+    
+    def post(self,request):
+        if Profile.objects.filter(user=request.user).exists():
+            return Response({'error':'Profile already exits'},status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = ProfileSerializers(data=request.data)
+        if serializer.is_valid():
+            serializer.save(request.user)
+            return Response({
+                'msg':'Profile created successfully'
+            },status=status.HTTP_201_CREATED)
 
+        return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
