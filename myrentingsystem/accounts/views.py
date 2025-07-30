@@ -97,3 +97,5 @@ class ProfileViwe(APIView):
         return Response({
             "msg":"Profile successfully deleted"
         },status=status.HTTP_204_NO_CONTENT)
+    
+    
