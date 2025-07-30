@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login,logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
-from .models import CustomUser
+from .models import CustomUser, Profile
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -68,3 +68,8 @@ class LoginSerializer(serializers.Serializer):
             'role': user.role if hasattr(user, 'role') else 'user'
         }
 
+
+class ProfileSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__'

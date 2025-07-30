@@ -53,3 +53,10 @@ class LoginView(APIView):
                 'data':{},
                 'message':"An error occured"
             }, status=status.HTTP_400_BAD_REQUEST)
+        
+class ProfileViwe(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        pass
+
