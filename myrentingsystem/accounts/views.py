@@ -1,7 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from accounts.models import CustomUser, Profile
 from django.contrib.auth import authenticate,login,logout
-from accounts.serializers import RegisterSerializer, LoginSerializer
+from accounts.serializers import RegisterSerializer, LoginSerializer, ProfileSerializers
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -58,5 +58,7 @@ class ProfileViwe(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
-        pass
+        profile = get_object_or_404(Profile, user=request.user)
+        serializer = ProfileSerializers(profile)
+        return Response(serializer.data,status=status.HTTP_200_OK)
 
