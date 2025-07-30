@@ -74,3 +74,13 @@ class ProfileViwe(APIView):
             },status=status.HTTP_201_CREATED)
 
         return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self,request):
+        profile = get_object_or_404(Profile,user=request.user)
+        serializer = ProfileSerializers(profile,data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg':"Profile Updated Successfully"},status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+    
