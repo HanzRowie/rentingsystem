@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
-
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class RegisterView(APIView):
     def post(self, request):
@@ -53,6 +53,16 @@ class LoginView(APIView):
                 'data':{},
                 'message':"An error occured"
             }, status=status.HTTP_400_BAD_REQUEST)
+
+class LogoutView(APIView):
+    def post(self,request):
+        refresh_token = request.data.get('refresh_token')
+        refresh_token = RefreshToken(refresh_token)
+        refresh_token.blacklist()
+        return Response({
+            "message":"logged out successfully"
+        },status=205)       
+
         
 class ProfileViwe(APIView):
     permission_classes = [IsAuthenticated]
