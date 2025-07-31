@@ -48,7 +48,7 @@ class LoginView(APIView):
                     'message':'Something went wrong'
                 },status=status.HTTP_400_BAD_REQUEST)
             
-            token_response = serializer.get_jwt_token(serializer.validate_data)
+            token_response = serializer.get_jwt_token(serializer.validated_data)
             return Response(token_response,status=status.HTTP_200_OK)
         
         except Exception as e:
@@ -67,7 +67,7 @@ class LogoutView(APIView):
         },status=205)       
 
         
-class ProfileViwe(APIView):
+class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
