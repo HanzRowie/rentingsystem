@@ -4,6 +4,8 @@ from django.contrib.auth import authenticate, login,logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 from .models import CustomUser, Profile
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 class RegisterSerializer(serializers.Serializer):
