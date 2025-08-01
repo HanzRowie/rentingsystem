@@ -47,7 +47,10 @@ class RoomView(ApiView):
         
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
-
+    def delete(self,request):
+        room = get_object_or_404(Room,user = request.user)
+        room.delete()
+        return Response({'msg':'Your rooms is deleted'},status=status.HTTP_200_OK)
 
   
         
