@@ -36,7 +36,17 @@ class RoomView(ApiView):
         else:
             return Response(serializers.errors,status=status.HTTP_400_BAD_REQUEST)
         
+    
+    def patch(self,request):
+        room = get_object_or_404(Room,user = request.user)
+        serializer = RoomSerializer(room,data=request.data, partial = True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg':'Your Room is successfully updated'}, status=status.HTTP_200_OK)
         
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
 
 
   
