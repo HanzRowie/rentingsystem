@@ -27,14 +27,22 @@ class RoomView(ApiView):
             return Response({'msg':'Room successfully posted'},status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
-    def put(self,request):
-        room = get_object_or_404(Room, user=request.user)
-        serializers = RoomSerializer(room,data = request.data)
-        if serializers.is_valid():
-            serializers.save()
-            return Response({'msg':"Your rooms is successfully Updated"},status=status.HTTP_200_OK)
-        else:
-            return Response(serializers.errors,status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, pk=None):
+        if pk is None:
+            return Response(
+                {"error": "Room ID (pk) is required to update a room."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        room = get_object_or_404(Room, pk=pk, user=request.user)
+        serializer = RoomSerializer(room, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg": "Room updated successfully."}, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         
     
     def patch(self, request, pk=None):
