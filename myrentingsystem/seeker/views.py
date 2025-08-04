@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 from seeker.models import RoomRequest
 from accounts.permissions import IsSeeker
-
+from ownerrooms.serializers import RoomSerializer
 
 # Create your views here.
 class RoomRequestView(APIView):
@@ -65,8 +65,19 @@ class RoomRequestView(APIView):
         roomrequest = get_object_or_404(RoomRequest, pk=pk, seeker=request.user)
         roomrequest.delete()
         return Response({"msg": "Room request deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
-    
+
+class RoomListView(APIView):
+    permission_classes = [IsAuthenticated, IsSeeker]
+
+    def get(self, request):
+        rooms = Room.objects.filter(available=True)
+        serializer = RoomSerializer(rooms, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
     
 
 
-            
+
