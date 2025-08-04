@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from .models import Seeker
+from .models import RoomRequest
 
-class SeekerSerializer(serializers.ModelSerializer):
+class RoomRequestSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Seeker
+        model = RoomRequest
         fields = '__all__'
         read_only_fields = ['id', 'created_at']
