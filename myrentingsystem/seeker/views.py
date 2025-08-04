@@ -25,6 +25,9 @@ class RoomRequestView(APIView):
             return Response({"msg": "Room request submitted successfully."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-   
+    def get(self, request):
+        requests = RoomRequest.objects.filter(seeker=request.user)
+        serializer = RoomRequestSerializer(requests, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
             
