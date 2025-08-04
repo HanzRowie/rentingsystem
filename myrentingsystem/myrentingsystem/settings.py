@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'accounts',
     'ownerrooms',
     'seeker',
+    'Wishlist',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
 ]
