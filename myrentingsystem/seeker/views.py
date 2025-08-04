@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from ownerrooms.models import Room
 from seeker.serializers import RoomRequestSerializer
 from rest_framework.views import APIView
@@ -29,5 +29,22 @@ class RoomRequestView(APIView):
         requests = RoomRequest.objects.filter(seeker=request.user)
         serializer = RoomRequestSerializer(requests, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request,pk=None):
+        if pk is None:
+            return Response(
+                {"error": "Room request ID (pk) is required to update a request."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        roomrequest = get_object_or_404(RoomRequest, pk=pk, seeker=request.user)
+        serializer = RoomRequestSerializer(roomrequest, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg": "Room request updated successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    
+
 
             
