@@ -9,15 +9,15 @@ from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 class RoomView(APIView):
-    permission_classes = [IsAuthenticated]  # fixed typo
+    permission_classes = [IsAuthenticated]  
 
     def get(self, request, pk=None):
         user = request.user
         if pk is not None:
-            room = get_object_or_404(Room, pk=pk, owner=user)  # use 'owner' field
+            room = get_object_or_404(Room, pk=pk, owner=user)  
             serializer = RoomSerializer(room)
         else:
-            rooms = Room.objects.filter(owner=user)  # use 'owner' field
+            rooms = Room.objects.filter(owner=user)  
             serializer = RoomSerializer(rooms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -32,7 +32,7 @@ class RoomView(APIView):
         if pk is None:
             return Response({"error": "Room ID (pk) is required to update a room."}, status=status.HTTP_400_BAD_REQUEST)
         
-        room = get_object_or_404(Room, pk=pk, owner=request.user)  # use 'owner' field
+        room = get_object_or_404(Room, pk=pk, owner=request.user) 
         serializer = RoomSerializer(room, data=request.data)
 
         if serializer.is_valid():
@@ -56,6 +56,6 @@ class RoomView(APIView):
         if pk is None:
             return Response({"error": "Room ID (pk) is required to delete a room."}, status=status.HTTP_400_BAD_REQUEST)
 
-        room = get_object_or_404(Room, pk=pk, owner=request.user)  # use 'owner' field
+        room = get_object_or_404(Room, pk=pk, owner=request.user)  
         room.delete()
         return Response({"msg": "Room deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
