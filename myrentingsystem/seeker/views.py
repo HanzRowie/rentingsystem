@@ -56,6 +56,15 @@ class RoomRequestView(APIView):
             return Response({"msg": "Room request updated successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    def delete(self,request,pk=None):
+        if pk is None:
+            return Response(
+                {"error": "Room request ID (pk) is required to delete a request."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        roomrequest = get_object_or_404(RoomRequest, pk=pk, seeker=request.user)
+        roomrequest.delete()
+        return Response({"msg": "Room request deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
     
     
 
