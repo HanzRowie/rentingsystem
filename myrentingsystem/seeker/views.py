@@ -9,6 +9,8 @@ from django.conf import settings
 from seeker.models import RoomRequest
 from accounts.permissions import IsSeeker
 from ownerrooms.serializers import RoomSerializer
+from django.db.models import Q
+from django.core.paginator import Paginator
 
 # Create your views here.
 class RoomRequestView(APIView):
@@ -75,9 +77,42 @@ class RoomListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class SearchRoomView(APIView):
+    permission_classes = [IsAuthenticated, IsSeeker]
 
+    def get(self, request):
+        search_query = request.query_params.get('search', '')
+        price = request.query_params.get('price', None)
+        location = request.query_params.get('location', '')
 
-    
+        rooms = Room.objects.filter(available=True)
 
+        # Filter by price if provided
+        if price:
+            try:
+                price = int(price)
+                rooms = rooms.filter(price__lte=price)
+            except ValueError:
+                return Response({"error": "Invalid price value."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Filter by location if provided
+        if location:
+            rooms = rooms.filter(location__icontains=location)
+
+        # Filter by search query if provided
+        if search_query:
+            rooms = rooms.filter(
+                Q(name__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(location__icontains=search_query)
+            )
+
+        # Pagination
+        page_number = request.query_params.get('page', 1)
+        paginator = Paginator(rooms, 2)
+        page_obj = paginator.get_page(page_number)
+
+        serializer = RoomSerializer(page_obj, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
