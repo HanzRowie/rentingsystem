@@ -1,15 +1,14 @@
 from rest_framework.permissions import BasePermission
 
 class IsAdmin(BasePermission):
-    def  has_permission(self,request,view):
+    def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'admin'
     
 class IsSeeker(BasePermission):
-    def has_permission(self,request,view):
-        return request.user.is_authenticated and request.user.role =='seeker'
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'seeker'
     
 class IsRoomOwner(BasePermission):
-    def has_permission(self,request,view):
-        return request.user.is_authenticated  and  request.user.role =='room owner'
-    
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'room owner'  
 

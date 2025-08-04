@@ -3,7 +3,7 @@ from django.conf import settings
 # Create your models here.
 
 class Room(models.Model):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'role': 'owner'})
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'role': 'room owner'})
     title = models.CharField(max_length=100)
     description = models.TextField()
     location = models.CharField(max_length=100)
