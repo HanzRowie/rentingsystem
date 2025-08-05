@@ -116,3 +116,22 @@ class SearchRoomView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+
+class RoomSortView(APIView):
+    permission_classes = [IsAuthenticated, IsSeeker]
+
+    def get(self,request):
+        sort_order = request.query_params.get('sort','newest')
+        if sort_order == 'newest':
+            rooms = Room.objects.filter(available=True).order_by('-created_at')
+        elif sort_order == 'oldest':
+            rooms = Room.objects.filter(available=True).order_by('created_at')
+        elif sort_order == 'price_asc':
+            rooms = Room.objects.filter(available=True).order_by('price')
+        elif sort_order == 'price_desc':
+            rooms = Room.objects.filter(available=True).order_by('-price')
+        else:
+            return Response({"error": "Invalid sort order."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = RoomSerializer(rooms, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
