@@ -134,4 +134,5 @@ class RoomSortView(APIView):
             return Response({"error": "Invalid sort order."}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = RoomSerializer(rooms, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK) 
+    
