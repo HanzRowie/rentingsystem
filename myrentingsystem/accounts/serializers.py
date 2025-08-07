@@ -118,3 +118,33 @@ class SendPasswordResetEmailSerializer(serializers.Serializer):
             return attrs
         else:
             raise serializers.ValidationError("User with this email does not exist")
+    
+
+class UserPasswordResetSerializer(serializers.Serializer):
+    password = serializers.CharField(max_length=128,write_only=True, style={'input_type': 'password'})
+    password2 = serializers.CharField(max_length=128,write_only=True, style={'input_type': 'password'})
+
+    class Meta:
+        fields = ('password', 'password2')
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+        uid = self.context.get('uid')
+        token = self.context.get('token')
+        if password != password2:
+            raise serializers.ValidationError("Passwords do not match")
+        
+        try:
+            id = smart_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(id=id)
+            if not PasswordResetTokenGenerator().check_token(user, token):
+                raise serializers.ValidationError("Token is invalid or has expired")
+            user.set_password(password)
+            user.save()
+        except DjangoUnicodeDecodeError:
+            raise serializers.ValidationError("Token is invalid or has expired")
+        return attrs
+        
+        
+        
