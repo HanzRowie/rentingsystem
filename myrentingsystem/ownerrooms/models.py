@@ -10,6 +10,7 @@ class Room(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    photo = models.ImageField(upload_to='rooms/', null=True, blank=True)
 
     def __str__(self):
         return self.title
