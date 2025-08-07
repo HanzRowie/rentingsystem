@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
 from  django.utils.http import  urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from .utils import Util
+from accounts.utils  import Utils
 User = get_user_model()
 
 
@@ -114,7 +114,7 @@ class SendPasswordResetEmailSerializer(serializers.Serializer):
                 'body': body,
                 'to_email': user.email
             }
-            Util.send_email(data)
+            Utils.send_email(data)
             return attrs
         else:
             raise serializers.ValidationError("User with this email does not exist")
