@@ -12,62 +12,62 @@ from ownerrooms.serializers import RoomSerializer
 from django.db.models import Q
 from django.core.paginator import Paginator
 
-# Create your views here.
 class RoomRequestView(APIView):
     permission_classes = [IsAuthenticated, IsSeeker]
 
-    def post(self,request,room_id):
+    def post(self, request, room_id):
         try:
             room = Room.objects.get(id=room_id, available=True)
         except Room.DoesNotExist:
             return Response({"error": "Room not found or not available."}, status=status.HTTP_404_NOT_FOUND)
+        
         serializer = RoomRequestSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(seeker=request.user, room=room)
             return Response({"msg": "Room request submitted successfully."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def get(self, request):
         requests = RoomRequest.objects.filter(seeker=request.user)
         serializer = RoomRequestSerializer(requests, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    def put(self, request,pk=None):
+
+    def put(self, request, pk=None):
         if pk is None:
-            return Response(
-                {"error": "Room request ID (pk) is required to update a request."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Room request ID (pk) is required to update a request."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if 'status' in request.data:
+            return Response({"error": "You cannot update the status."}, status=status.HTTP_400_BAD_REQUEST)
+        
         roomrequest = get_object_or_404(RoomRequest, pk=pk, seeker=request.user)
         serializer = RoomRequestSerializer(roomrequest, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"msg": "Room request updated successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def patch(self,request, pk=None):
+
+    def patch(self, request, pk=None):
         if pk is None:
-            return Response(
-                {"error": "Room request ID (pk) is required to update a request."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Room request ID (pk) is required to update a request."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if 'status' in request.data:
+            return Response({"error": "You cannot update the status."}, status=status.HTTP_400_BAD_REQUEST)
+        
         roomrequest = get_object_or_404(RoomRequest, pk=pk, seeker=request.user)
-        serializer = RoomRequestSerializer(roomrequest,data=request.data, partial=True)
+        serializer = RoomRequestSerializer(roomrequest, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"msg": "Room request updated successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self,request,pk=None):
+
+    def delete(self, request, pk=None):
         if pk is None:
-            return Response(
-                {"error": "Room request ID (pk) is required to delete a request."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Room request ID (pk) is required to delete a request."}, status=status.HTTP_400_BAD_REQUEST)
+        
         roomrequest = get_object_or_404(RoomRequest, pk=pk, seeker=request.user)
         roomrequest.delete()
         return Response({"msg": "Room request deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
-
+    
 class RoomListView(APIView):
     permission_classes = [IsAuthenticated, IsSeeker]
 
