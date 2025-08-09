@@ -82,4 +82,15 @@ class OwnerRoomRequestView(APIView):
 
         room_request.status = new_status
         room_request.save()
+
+        # If approved → mark room unavailable and reject other pending requests
+        if new_status == 'approved':
+            room = room_request.room
+            room.available = False
+            room.save()
+
+            # Reject all other pending requests for this room
+            RoomRequest.objects.filter(room=room, status='pending').exclude(pk=pk).update(status='rejected')
+
         return Response({"msg": f"Request {new_status} successfully."})
+
