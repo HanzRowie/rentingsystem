@@ -9,6 +9,7 @@ class Room(models.Model):
     location = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     available = models.BooleanField(default=True)
+    is_approved = models.BooleanField(default=False) 
     created_at = models.DateTimeField(auto_now_add=True)
     photo = models.ImageField(upload_to='rooms/', null=True, blank=True)
 
