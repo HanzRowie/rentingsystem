@@ -7,6 +7,7 @@ from review.serializers import ReviewSerializer
 from ownerrooms.models import Room
 from seeker.models import RoomRequest
 from rest_framework.views import APIView
+from django.db.models import Avg, Count
 
 # Create your views here.
 
@@ -62,3 +63,18 @@ class ReviewView(APIView):
         review = get_object_or_404(Review,room_id = room_id, seeker = request.usesr)
         review.delete()
         return Response({'msg':"Review Deleted Successfully"},status=status.HTTP_204_NO_CONTENT)
+    
+
+class RoomReviewViewSummaryView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self,request,room_id):
+        aggregates = Review.objects.filter(room_id=room_id).aggregate(
+            average_rating=Avg('rating'),
+            total_reviews=Count('id')
+        )
+        return Response({
+            'room_id': room_id,
+            'average_rating': aggregates['average_rating'],
+            'total_reviews': aggregates['total_reviews']
+        },status=status.HTTP_200_OK)
