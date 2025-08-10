@@ -8,4 +8,5 @@ urlpatterns = [
     path('ownerrooms/', include('ownerrooms.urls')), 
     path('seeker/', include('seeker.urls')),
     path('wishlist/', include('Wishlist.urls')),
+    path('review/', include('review.urls')), 
 ]
