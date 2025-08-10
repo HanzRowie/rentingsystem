@@ -57,3 +57,8 @@ class ReviewView(APIView):
             serializer.save()
             return Response({'msg':"Review Updated Successfully"},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self,request,room_id):
+        review = get_object_or_404(Review,room_id = room_id, seeker = request.usesr)
+        review.delete()
+        return Response({'msg':"Review Deleted Successfully"},status=status.HTTP_204_NO_CONTENT)
