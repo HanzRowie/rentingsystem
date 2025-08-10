@@ -17,7 +17,7 @@ class RoomRequestView(APIView):
 
     def post(self, request, room_id):
         try:
-            room = Room.objects.get(id=room_id, available=True)
+            room = Room.objects.get(id=room_id, available=True, is_approved=True)
         except Room.DoesNotExist:
             return Response({"error": "Room not found or not available."}, status=status.HTTP_404_NOT_FOUND)
         
@@ -72,7 +72,7 @@ class RoomListView(APIView):
     permission_classes = [IsAuthenticated, IsSeeker]
 
     def get(self, request):
-        rooms = Room.objects.filter(available=True)
+        rooms = Room.objects.filter(available=True, is_approved=True)
         serializer = RoomSerializer(rooms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -85,7 +85,7 @@ class SearchRoomView(APIView):
         price = request.query_params.get('price', None)
         location = request.query_params.get('location', '')
 
-        rooms = Room.objects.filter(available=True)
+        rooms = Room.objects.filter(available=True, is_approved=True)
 
         # Filter by price if provided
         if price:
@@ -123,13 +123,13 @@ class RoomSortView(APIView):
     def get(self,request):
         sort_order = request.query_params.get('sort','newest')
         if sort_order == 'newest':
-            rooms = Room.objects.filter(available=True).order_by('-created_at')
+            rooms = Room.objects.filter(available=True,is_approved=True).order_by('-created_at')
         elif sort_order == 'oldest':
-            rooms = Room.objects.filter(available=True).order_by('created_at')
+            rooms = Room.objects.filter(available=True,is_approved=True).order_by('created_at')
         elif sort_order == 'price_asc':
-            rooms = Room.objects.filter(available=True).order_by('price')
+            rooms = Room.objects.filter(available=True,is_approved=True).order_by('price')
         elif sort_order == 'price_desc':
-            rooms = Room.objects.filter(available=True).order_by('-price')
+            rooms = Room.objects.filter(available=True,is_approved=True).order_by('-price')
         else:
             return Response({"error": "Invalid sort order."}, status=status.HTTP_400_BAD_REQUEST)
         
