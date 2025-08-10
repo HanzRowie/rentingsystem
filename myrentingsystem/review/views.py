@@ -8,6 +8,7 @@ from ownerrooms.models import Room
 from seeker.models import RoomRequest
 from rest_framework.views import APIView
 from django.db.models import Avg, Count
+from django.http import Http404
 
 # Create your views here.
 
@@ -16,7 +17,11 @@ class ReviewView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, room_id):
-     
+        
+        try:
+           room = Room.objects.get(id=room_id, is_approved=True)
+        except Room.DoesNotExist:
+           raise Http404("Room not found or not approved")
         has_requested = RoomRequest.objects.filter(
             seeker=request.user,
             room_id=room_id,
@@ -60,7 +65,7 @@ class ReviewView(APIView):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self,request,room_id):
-        review = get_object_or_404(Review,room_id = room_id, seeker = request.usesr)
+        review = get_object_or_404(Review,room_id = room_id, seeker = request.user)
         review.delete()
         return Response({'msg':"Review Deleted Successfully"},status=status.HTTP_204_NO_CONTENT)
     
@@ -69,6 +74,8 @@ class RoomReviewViewSummaryView(APIView):
     permission_classes = [AllowAny]
 
     def get(self,request,room_id):
+        if not Room.objects.filter(id=room_id, is_approved=True).exists():
+            return Response({"error": "Room not found or not approved"}, status=status.HTTP_404_NOT_FOUND)
         aggregates = Review.objects.filter(room_id=room_id).aggregate(
             average_rating=Avg('rating'),
             total_reviews=Count('id')
