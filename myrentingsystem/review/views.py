@@ -50,3 +50,10 @@ class ReviewView(APIView):
             return Response({'msg':"Review Updated Successfully"},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
+    def patch(self,request, room_id):
+        review = get_object_or_404(Review,room_id = room_id, seeker = request.user)
+        serializer = ReviewSerializer(review, data = request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg':"Review Updated Successfully"},status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
