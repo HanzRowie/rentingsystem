@@ -29,7 +29,7 @@ class RoomView(APIView):
     def post(self, request):
         serializer = RoomSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(owner=request.user)  # use 'owner' field
+            serializer.save(owner=request.user, is_approved = False)  # use 'owner' field
             return Response({'msg': 'Room successfully posted'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -42,6 +42,8 @@ class RoomView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            room.is_approved = False  # Reset approval status on update
+            room.save()
             return Response({"msg": "Room updated successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -54,6 +56,8 @@ class RoomView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            room.is_approved = False  # Reset approval status on partial update
+            room.save()
             return Response({"msg": "Room updated successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
