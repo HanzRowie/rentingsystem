@@ -5,7 +5,7 @@ from  rest_framework.permissions import IsAuthenticated, AllowAny
 from review.models import Review
 from review.serializers import ReviewSerializer
 from ownerrooms.models import Room
-from seeker.models import Seeker
+from seeker.models import RoomRequest
 from rest_framework.views import APIView
 
 # Create your views here.
@@ -15,12 +15,27 @@ class ReviewView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, room_id):
-        serializer = ReviewSerializer(data = request.data)
+        # ✅ Ensure the seeker has a RoomRequest for this room
+        has_requested = RoomRequest.objects.filter(
+            seeker=request.user,
+            room_id=room_id,
+            status='approved'
+        ).exists()
+
+        if not has_requested:
+            return Response(
+                {"error": "You can only review rooms you have booked."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # ✅ Create review
+        serializer = ReviewSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(seeker=request.user, room_id=room_id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def get(self, request):
         reviews = Review.objects.all()
         serializer = ReviewSerializer(reviews, many=True)
