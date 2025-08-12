@@ -29,9 +29,11 @@ class RegisterSerializer(serializers.Serializer):
         if data['password']!= data['conpassword']:
             raise serializers.ValidationError('Passwords do not match')
         
-        allowed_roles = ['seeker','Room Owner']
-        if data['role'].lower() not in allowed_roles:
-            raise serializers.ValidationError(f"Invalid role. Allowed roles are: {', '.join(allowed_roles)}")
+        # Accept only seeker or room owner (case-insensitive)
+        allowed_roles_lower = ['seeker', 'room owner']
+        if data['role'].lower() not in allowed_roles_lower:
+            readable_roles = 'Seeker, Room Owner'
+            raise serializers.ValidationError(f"Invalid role. Allowed roles are: {readable_roles}")
         
         return data
     
@@ -146,5 +148,4 @@ class UserPasswordResetSerializer(serializers.Serializer):
             raise serializers.ValidationError("Token is invalid or has expired")
         return attrs
         
-        
-        
+
