@@ -24,8 +24,10 @@ class WishlistView(APIView):
 
     def get(self, request):
         wishlist = Wishlist.objects.filter(seeker=request.user)
-        serializers = WishlistSerializer(wishlist, many=True)
-        return Response(serializers.data, status=status.HTTP_200_OK)
+        paginator = WishlistPagination()
+        paginated_wishlist = paginator.paginate_queryset(wishlist, request)
+        serializer = WishlistSerializer(paginated_wishlist, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request, room_id):
         room = get_object_or_404(Room, id=room_id, available=True)
