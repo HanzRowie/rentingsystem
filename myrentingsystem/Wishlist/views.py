@@ -7,10 +7,17 @@ from rest_framework.permissions import IsAuthenticated
 from Wishlist.models import Wishlist
 from Wishlist.serializers import WishlistSerializer
 from accounts.permissions import IsSeeker
-from ownerrooms.models import Room  # Import Room model (update the import path if needed)
+from ownerrooms.models import Room 
+from rest_framework.pagination import PageNumberPagination  
 
 
-# Create your views here.
+
+
+class WishlistPagination(PageNumberPagination):
+    page_size = 5  
+    page_size_query_param = 'page_size'  
+    max_page_size = 20
+
 
 class WishlistView(APIView):
     permission_classes = [IsAuthenticated, IsSeeker]
