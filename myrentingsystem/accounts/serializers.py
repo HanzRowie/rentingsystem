@@ -16,17 +16,17 @@ class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField()
     email = serializers.EmailField()
     password = serializers.CharField(write_only = True)
-    conpassword =  serializers.CharField(write_only =  True)
-    role  = serializers.CharField()
+    password2 = serializers.CharField(write_only = True)
+    role = serializers.CharField()
 
     def validate(self, data):
-        if User.objects.filter(username  = data['username'].lower()).exists():
+        if User.objects.filter(username = data['username'].lower()).exists():
             raise serializers.ValidationError('Username is already taken')
         
         if User.objects.filter(email = data['email'].lower()).exists():
             raise serializers.ValidationError('Email is already taken')
         
-        if data['password']!= data['conpassword']:
+        if data['password'] != data['password2']:
             raise serializers.ValidationError('Passwords do not match')
         
         # Accept only seeker or room owner (case-insensitive)
@@ -38,16 +38,17 @@ class RegisterSerializer(serializers.Serializer):
         return data
     
     def create(self, validated_data):
-      validated_data.pop('conpassword')
+        # Remove password2 before creating user
+        validated_data.pop('password2')
 
-      user = User.objects.create(
-          username =   validated_data['username'],
-          email = validated_data['email'],
-          role= validated_data['role'].lower()
-      )
-      user.set_password(validated_data['password'])
-      user.save()
-      return user
+        user = User.objects.create(
+            username = validated_data['username'],
+            email = validated_data['email'],
+            role = validated_data['role'].lower()
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 class LoginSerializer(serializers.Serializer):
     username =  serializers.CharField()
