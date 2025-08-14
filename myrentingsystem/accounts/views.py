@@ -9,7 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from accounts.serializers import SendPasswordResetEmailSerializer
+from accounts.serializers import SendPasswordResetEmailSerializer, UserPasswordResetSerializer
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -19,9 +19,12 @@ class RegisterView(APIView):
     def post(self, request):
         try:
             data = request.data
+            print("Received data:", data)  # Debug print
+            
             serializer = RegisterSerializer(data=data)
             
             if not serializer.is_valid():
+                print("Serializer errors:", serializer.errors)  # Debug print
                 return Response({
                     'data': serializer.errors,
                     'message': 'Something went wrong'
@@ -34,6 +37,7 @@ class RegisterView(APIView):
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
+            print("Exception occurred:", str(e))  # Debug print
             return Response({
                 'data': str(e),
                 'message': "An error occurred"
@@ -123,7 +127,7 @@ class  UserChangePasswordView(APIView):
         return  Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class SendPasswordResetEmailSerializer(APIView):
+class SendPasswordResetEmail(APIView):
     permission_classes= [AllowAny]
     def post(self,request,format=None):
         serializer = SendPasswordResetEmailSerializer(data=request.data)
@@ -134,7 +138,7 @@ class SendPasswordResetEmailSerializer(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-class UserPasswordResetSerializer(APIView):
+class UserPasswordReset(APIView):
     def post(self,request,uid,token,format=None):
         serializer = UserPasswordResetSerializer(data=request.data, context={'uid': uid, 'token': token})
         if serializer.is_valid(raise_exception=True):
