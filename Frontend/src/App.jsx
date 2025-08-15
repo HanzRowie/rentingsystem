@@ -1,17 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import Register from './pages/Register.jsx';
+import Login from './pages/Login.jsx';
+import OwnerDashboard from './pages/owner/Dashboard.jsx';
+import SeekerDashboard from './pages/seeker/Dashboard.jsx';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/register" element={<Register />} />
-        {/* Placeholder dashboards */}
-        <Route path="/seeker/dashboard" element={<div className="p-6">Seeker Dashboard</div>} />
-        <Route path="/owner/dashboard" element={<div className="p-6">Owner Dashboard</div>} />
-        {/* Default redirect to sign in */}
-        <Route path="*" element={<Navigate to="/register" replace />} />
+        <Route path="/login" element={<Login />} />
+        {/* Dashboard routes */}
+        <Route path="/seeker/dashboard" element={<SeekerDashboard />} />
+        <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+        {/* Default redirect to login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
