@@ -7,6 +7,6 @@ urlpatterns = [
    path('profile/',views.ProfileView.as_view(),name='profile'),
    path('logout/',views.LogoutView.as_view(),name='logout'),
    path('changepassword/', views.UserChangePasswordView.as_view(), name='changepassword'),
-   path('UserPasswordResetView/<uid>/<token>/', views.UserPasswordResetSerializer.as_view(), name='UserPasswordResetView'),
-   path('SendPasswordResetEmai/', views.SendPasswordResetEmailSerializer.as_view(), name='SendPasswordResetEmail')
+   path('UserPasswordResetView/<uid>/<token>/', views.UserPasswordReset.as_view(), name='UserPasswordResetView'),
+   path('SendPasswordResetEmai/', views.SendPasswordResetEmail.as_view(), name='SendPasswordResetEmail')
 ]
