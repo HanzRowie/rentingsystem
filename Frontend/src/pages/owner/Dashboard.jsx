@@ -256,7 +256,10 @@ export default function OwnerDashboard() {
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">Add New Room</h4>
                 <p className="text-gray-600 mb-4">List a new room for rent</p>
-                <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                <button 
+                  onClick={() => navigate('/owner/add-room')}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
                   Add Room
                 </button>
               </div>
@@ -272,7 +275,10 @@ export default function OwnerDashboard() {
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">Manage Rooms</h4>
                 <p className="text-gray-600 mb-4">Edit and update your room listings</p>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                <button 
+                  onClick={() => navigate('/owner/manage-rooms')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
                   Manage Rooms
                 </button>
               </div>
@@ -288,7 +294,10 @@ export default function OwnerDashboard() {
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">View Requests</h4>
                 <p className="text-gray-600 mb-4">Review and respond to rental requests</p>
-                <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                <button 
+                  onClick={() => navigate('/owner/view-requests')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
                   View Requests
                 </button>
               </div>
