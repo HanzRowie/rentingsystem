@@ -220,7 +220,10 @@ export default function SeekerDashboard() {
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">Browse Rooms</h4>
                 <p className="text-gray-600 mb-4">Find available rooms in your area</p>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                <button 
+                  onClick={() => navigate('/seeker/browse-rooms')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
                   Start Searching
                 </button>
               </div>
