@@ -11,7 +11,6 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from accounts.utils  import Utils
 User = get_user_model()
 
-
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField()
     email = serializers.EmailField()
@@ -42,8 +41,8 @@ class RegisterSerializer(serializers.Serializer):
         validated_data.pop('password2')
 
         user = User.objects.create(
-            username = validated_data['username'],
-            email = validated_data['email'],
+            username = validated_data['username'].lower(),
+            email = validated_data['email'].lower(),
             role = validated_data['role'].lower()
         )
         user.set_password(validated_data['password'])
@@ -51,32 +50,35 @@ class RegisterSerializer(serializers.Serializer):
         return user
 
 class LoginSerializer(serializers.Serializer):
-    username =  serializers.CharField()
-    password = serializers.CharField()
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        if not User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError('User not found')
-        return data
-        
-    def get_jwt_token(self, validated_data):
-        user = authenticate(username = validated_data['username'],password = validated_data["password"])
-        
-        if not user:
-            raise  serializers.ValidationError('Invalid credentials')
-        
-        refresh  = RefreshToken.for_user(user)
+        username = data.get('username')
+        password = data.get('password')
 
-        return  {
+        user = authenticate(username=username, password=password)
+        if not user:
+            raise serializers.ValidationError('Invalid username or password')
+
+        if not user.is_active:
+            raise serializers.ValidationError('User account is disabled')
+
+        data['user'] = user
+        return data
+
+    def get_jwt_token(self, validated_data):
+        user = validated_data['user']
+        refresh = RefreshToken.for_user(user)
+        return {
             'access': str(refresh.access_token),
             'refresh': str(refresh),
             'user': {
                 'username': user.username,
                 'email': user.email
             },
-            'role': user.role if hasattr(user, 'role') else 'user'
+            'role': getattr(user, 'role', 'user')
         }
-
 
 class ProfileSerializers(serializers.ModelSerializer):
     class Meta:
