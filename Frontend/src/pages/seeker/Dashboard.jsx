@@ -239,7 +239,10 @@ export default function SeekerDashboard() {
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">My Requests</h4>
                 <p className="text-gray-600 mb-4">View and manage your room requests</p>
-                <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                <button 
+                  onClick={() => navigate('/seeker/view-requests-seeker')}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
                   View Requests
                 </button>
               </div>
