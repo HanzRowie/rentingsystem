@@ -13,10 +13,13 @@ export default function BrowseRooms() {
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [wishlistLoading, setWishlistLoading] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchRooms();
+    fetchWishlist();
   }, [searchQuery, priceFilter, locationFilter, sortBy, currentPage]);
 
   const fetchRooms = async () => {
@@ -83,6 +86,78 @@ export default function BrowseRooms() {
 
   const handleBack = () => {
     navigate('/seeker/dashboard');
+  };
+
+  const fetchWishlist = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${API_BASE}/wishlist/wishlist/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setWishlistItems(data.results || data);
+      }
+    } catch (err) {
+      console.error('Error fetching wishlist:', err);
+    }
+  };
+
+  const handleAddToWishlist = async (roomId) => {
+    setWishlistLoading(prev => ({ ...prev, [roomId]: true }));
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${API_BASE}/wishlist/wishlist/${roomId}/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        await fetchWishlist();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to add to wishlist');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setWishlistLoading(prev => ({ ...prev, [roomId]: false }));
+    }
+  };
+
+  const handleRemoveFromWishlist = async (roomId) => {
+    setWishlistLoading(prev => ({ ...prev, [roomId]: true }));
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${API_BASE}/wishlist/wishlist/${roomId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        await fetchWishlist();
+      } else {
+        setError('Failed to remove from wishlist');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setWishlistLoading(prev => ({ ...prev, [roomId]: false }));
+    }
+  };
+
+  const isInWishlist = (roomId) => {
+    return wishlistItems.some(item => item.room === roomId);
   };
 
   const getStatusBadge = (isApproved, available) => {
@@ -379,7 +454,31 @@ export default function BrowseRooms() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-end">
+                        <div className="flex justify-between items-center">
+                          {/* Wishlist Button */}
+                          <button
+                            onClick={() => isInWishlist(room.id) 
+                              ? handleRemoveFromWishlist(room.id) 
+                              : handleAddToWishlist(room.id)
+                            }
+                            disabled={wishlistLoading[room.id]}
+                            className={`flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                              isInWishlist(room.id)
+                                ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700'
+                                : 'bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700'
+                            }`}
+                          >
+                            {wishlistLoading[room.id] ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            ) : (
+                              <svg className="w-5 h-5" fill={isInWishlist(room.id) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                              </svg>
+                            )}
+                            <span>{isInWishlist(room.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}</span>
+                          </button>
+
+                          {/* Request Room Button */}
                           <button
                             onClick={() => handleRequestRoom(room.id)}
                             disabled={!room.is_approved || !room.available}
