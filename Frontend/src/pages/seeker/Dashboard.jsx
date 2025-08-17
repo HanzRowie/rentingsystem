@@ -99,6 +99,17 @@ export default function SeekerDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Wishlist Button */}
+              <button
+                onClick={() => navigate('/seeker/wishlist')}
+                className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span>My Wishlist</span>
+              </button>
+              
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">Welcome back,</p>
                 <p className="text-sm text-gray-500">{user?.username}</p>
@@ -123,6 +134,18 @@ export default function SeekerDashboard() {
               <div>
                 <h2 className="text-3xl font-bold mb-2">Welcome to Your Dashboard</h2>
                 <p className="text-blue-100 text-lg">Find your perfect room and manage your requests</p>
+                {/* Quick Wishlist Access */}
+                <div className="mt-4">
+                  <button
+                    onClick={() => navigate('/seeker/wishlist')}
+                    className="flex items-center space-x-2 bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-all duration-200 backdrop-blur-sm border border-white border-opacity-30"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span>Quick Access: My Wishlist</span>
+                  </button>
+                </div>
               </div>
               <div className="hidden md:block">
                 <svg className="w-24 h-24 text-white/20" fill="currentColor" viewBox="0 0 24 24">
@@ -258,7 +281,10 @@ export default function SeekerDashboard() {
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">Saved Rooms</h4>
                 <p className="text-gray-600 mb-4">Access your favorite rooms</p>
-                <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                <button 
+                  onClick={() => navigate('/seeker/wishlist')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
                   View Saved
                 </button>
               </div>
