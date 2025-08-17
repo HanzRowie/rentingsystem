@@ -8,6 +8,7 @@ import ManageRooms from './pages/owner/ManageRooms.jsx';
 import ViewRequest from './pages/owner/ViewRequest.jsx';
 import SeekerDashboard from './pages/seeker/Dashboard.jsx';
 import BrowseRooms from './pages/seeker/BrowseRooms.jsx';
+import ViewRequestSeeker from './pages/seeker/ViewRequestseeker.jsx';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         {/* Dashboard routes */}
         <Route path="/seeker/dashboard" element={<SeekerDashboard />} />
         <Route path="/seeker/browse-rooms" element={<BrowseRooms />} />
+        <Route path="/seeker/view-requests-seeker" element={<ViewRequestSeeker />} />
         <Route path="/owner/dashboard" element={<OwnerDashboard />} />
         <Route path="/owner/add-room" element={<AddRoom />} />
         <Route path="/owner/manage-rooms" element={<ManageRooms />} />
