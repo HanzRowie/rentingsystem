@@ -17,3 +17,15 @@ class NotificationListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
+class NotificationMarkReadView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def patch(self, request,pk):
+        try:
+            notification = Notification.objects.get(pk=pk, user=request.user)
+        except:
+            return Response({'error':'Notification not found'},status=status.HTTP_404_NOT_FOUND)
+        
+        notification.is_read  = True
+        notification.savve()
+        serializer = NotificationSerializer(notification)
+        return  Response(serializer.data, status=status.HTTP_200_OK)
