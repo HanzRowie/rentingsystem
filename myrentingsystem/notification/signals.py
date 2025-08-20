@@ -7,17 +7,38 @@ from notification.models import Notification
 
 
 # Notify seeker when their room request is approved
-@receiver(pre_save, sender=RoomRequest)
-def notify_seeker_on_request_update(sender, instance, **kwargs):
-    if instance.pk:  # only if updating
-        old_instance = RoomRequest.objects.get(pk=instance.pk)
-        if old_instance.status != instance.status and instance.status == 'approved':
-            Notification.objects.create(
+@receiver(post_save, sender=RoomRequest)
+def notify_seeker_on_request_update(sender, instance, created, **kwargs):
+    if not created:  # only if updating (not creating)
+        print(f"Room request {instance.pk} updated, status: {instance.status}")
+        
+        # Check if status is approved or rejected
+        if instance.status == 'approved':
+            print(f"Creating approval notification for user: {instance.seeker.username}")
+            notification = Notification.objects.create(
                 user=instance.seeker,
+                title="Room Request Approved",
                 message=f"Your request for the room '{instance.room.title}' has been approved."
             )
+            print(f"Approval notification created with ID: {notification.id}")
+        elif instance.status == 'rejected':
+            print(f"Creating rejection notification for user: {instance.seeker.username}")
+            notification = Notification.objects.create(
+                user=instance.seeker,
+                title="Room Request Rejected",
+                message=f"Your request for the room '{instance.room.title}' has been rejected."
+            )
+            print(f"Rejection notification created with ID: {notification.id}")
 
-
+# Notify owner when they receive a new room request
+@receiver(post_save, sender=RoomRequest)
+def notify_owner_on_new_request(sender, instance, created, **kwargs):
+    if created:  # only when a new request is created
+        Notification.objects.create(
+            user=instance.room.owner,
+            title="New Room Request",
+            message=f"You have received a new request for your room '{instance.room.title}' from {instance.seeker.username}."
+        )
 
 # Notify owner when their room is approved by admin
 @receiver(pre_save, sender=Room)
@@ -27,5 +48,7 @@ def notify_owner_on_room_approval(sender, instance, **kwargs):
         if not old_instance.is_approved and instance.is_approved:
             Notification.objects.create(
                 user=instance.owner,
+                title="Room Approved",
                 message=f"The room '{instance.title}' has been approved by the admin."
             )
+
