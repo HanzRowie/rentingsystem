@@ -34,11 +34,13 @@ def notify_seeker_on_request_update(sender, instance, created, **kwargs):
 @receiver(post_save, sender=RoomRequest)
 def notify_owner_on_new_request(sender, instance, created, **kwargs):
     if created:  # only when a new request is created
-        Notification.objects.create(
+        print(f"Creating new request notification for room owner: {instance.room.owner.username}")
+        notification = Notification.objects.create(
             user=instance.room.owner,
             title="New Room Request",
             message=f"You have received a new request for your room '{instance.room.title}' from {instance.seeker.username}."
         )
+        print(f"New request notification created with ID: {notification.id}")
 
 # Notify owner when their room is approved by admin
 @receiver(pre_save, sender=Room)
@@ -46,9 +48,11 @@ def notify_owner_on_room_approval(sender, instance, **kwargs):
     if instance.pk:  # only run if updating an existing Room
         old_instance = Room.objects.get(pk=instance.pk)
         if not old_instance.is_approved and instance.is_approved:
-            Notification.objects.create(
+            print(f"Creating room approval notification for room owner: {instance.owner.username}")
+            notification = Notification.objects.create(
                 user=instance.owner,
                 title="Room Approved",
                 message=f"The room '{instance.title}' has been approved by the admin."
             )
+            print(f"Room approval notification created with ID: {notification.id}")
 
