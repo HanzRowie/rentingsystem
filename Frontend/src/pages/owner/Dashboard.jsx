@@ -14,12 +14,36 @@ export default function OwnerDashboard() {
     pendingRequests: 0,
     totalEarnings: 0
   });
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
     fetchOwnerStats();
+    fetchNotifications();
+    
+    // Set up polling for notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Handle click outside notifications dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showNotifications && !event.target.closest('.notifications-container')) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   const checkAuth = () => {
     const token = localStorage.getItem('access_token');
@@ -61,6 +85,76 @@ export default function OwnerDashboard() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${API_BASE}/notification/notifications/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        handleNewNotification(data);
+      } else {
+        console.error('Failed to fetch notifications:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${API_BASE}/notification/notifications/${notificationId}/mark-read/`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        // Update local state
+        setNotifications(prev => 
+          prev.map(notification => 
+            notification.id === notificationId 
+              ? { ...notification, is_read: true }
+              : notification
+          )
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleNewNotification = (newNotifications) => {
+    const previousUnreadCount = unreadCount;
+    const newUnreadCount = newNotifications.filter(n => !n.is_read).length;
+    
+    // Show toast for new notifications
+    if (newUnreadCount > previousUnreadCount) {
+      const latestNotification = newNotifications.filter(n => !n.is_read)[0];
+      if (latestNotification) {
+        setToastMessage(latestNotification.message);
+        setShowToast(true);
+        
+        // Auto-hide toast after 5 seconds
+        setTimeout(() => {
+          setShowToast(false);
+        }, 5000);
+      }
+    }
+    
+    setNotifications(newNotifications);
+    setUnreadCount(newUnreadCount);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -82,6 +176,28 @@ export default function OwnerDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg max-w-md animate-slide-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span className="text-sm font-medium">{toastMessage}</span>
+            </div>
+            <button
+              onClick={() => setShowToast(false)}
+              className="ml-4 text-white hover:text-gray-200 transition-colors duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -101,6 +217,111 @@ export default function OwnerDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Notifications Icon */}
+              <div className="relative notifications-container">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium notification-badge">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                
+                {/* Notifications Dropdown */}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                    <div className="p-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                        <div className="flex items-center space-x-2">
+                          {unreadCount > 0 && (
+                            <span className="text-sm text-gray-500">{unreadCount} unread</span>
+                          )}
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={() => {
+                                notifications.forEach(notification => {
+                                  if (!notification.is_read) {
+                                    markNotificationAsRead(notification.id);
+                                  }
+                                });
+                              }}
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors duration-200"
+                            >
+                              Mark all read
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-gray-500">
+                          <svg className="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                          <p>No notifications yet</p>
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 ${
+                              !notification.is_read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                            }`}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className={`text-sm font-medium ${
+                                  !notification.is_read ? 'text-blue-900' : 'text-gray-900'
+                                }`}>
+                                  {notification.title || 'Notification'}
+                                </p>
+                                <p className={`text-sm mt-1 ${
+                                  !notification.is_read ? 'text-blue-700' : 'text-gray-600'
+                                }`}>
+                                  {notification.message}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-2">
+                                  {new Date(notification.created_at).toLocaleString()}
+                                </p>
+                              </div>
+                              {!notification.is_read && (
+                                <button
+                                  onClick={() => markNotificationAsRead(notification.id)}
+                                  className="ml-2 p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors duration-200"
+                                  title="Mark as read"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {notifications.length > 0 && (
+                      <div className="p-3 border-t border-gray-200 bg-gray-50">
+                        <button
+                          onClick={() => setShowNotifications(false)}
+                          className="w-full text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 px-3 py-2 rounded transition-colors duration-200"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">Welcome back,</p>
                 <p className="text-sm text-gray-500">{user?.username}</p>
