@@ -9,7 +9,7 @@ from notification.models import Notification
 # Notify seeker when their room request is approved
 @receiver(post_save, sender=RoomRequest)
 def notify_seeker_on_request_update(sender, instance, created, **kwargs):
-    if not created:  # only if updating (not creating)
+    if not created:  
         print(f"Room request {instance.pk} updated, status: {instance.status}")
         
         # Check if status is approved or rejected
@@ -33,7 +33,7 @@ def notify_seeker_on_request_update(sender, instance, created, **kwargs):
 # Notify owner when they receive a new room request
 @receiver(post_save, sender=RoomRequest)
 def notify_owner_on_new_request(sender, instance, created, **kwargs):
-    if created:  # only when a new request is created
+    if created: 
         print(f"Creating new request notification for room owner: {instance.room.owner.username}")
         notification = Notification.objects.create(
             user=instance.room.owner,
@@ -45,7 +45,7 @@ def notify_owner_on_new_request(sender, instance, created, **kwargs):
 # Notify owner when their room is approved by admin
 @receiver(pre_save, sender=Room)
 def notify_owner_on_room_approval(sender, instance, **kwargs):
-    if instance.pk:  # only run if updating an existing Room
+    if instance.pk: 
         old_instance = Room.objects.get(pk=instance.pk)
         if not old_instance.is_approved and instance.is_approved:
             print(f"Creating room approval notification for room owner: {instance.owner.username}")
