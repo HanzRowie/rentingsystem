@@ -14,7 +14,7 @@ from accounts.permissions import IsRoomOwner
 # Create your views here.
 
 class RoomView(APIView):
-    permission_classes = [IsAuthenticated]  
+    permission_classes = [IsAuthenticated, IsRoomOwner]  
 
     def get(self, request, pk=None):
         user = request.user
@@ -27,11 +27,17 @@ class RoomView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        print(f"User: {request.user}, Role: {request.user.role}")  # Debug log
+        print(f"Request data: {request.data}")  # Debug log
+        print(f"Request FILES: {request.FILES}")  # Debug log
+        
         serializer = RoomSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(owner=request.user, is_approved = False)  # use 'owner' field
+            serializer.save(owner=request.user, is_approved=False)  # use 'owner' field
             return Response({'msg': 'Room successfully posted'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            print(f"Serializer errors: {serializer.errors}")  # Debug log
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk=None):
         if pk is None:
@@ -80,12 +86,17 @@ class OwnerRoomRequestView(APIView):
     def patch(self, request, pk):
         room_request = get_object_or_404(RoomRequest, pk=pk, room__owner=request.user)
         new_status = request.data.get('status')
+        
+        print(f"Updating room request {pk} status to: {new_status}")
+        print(f"Current status: {room_request.status}")
 
         if new_status not in ['approved', 'rejected']:
             return Response({"error": "Invalid status."}, status=status.HTTP_400_BAD_REQUEST)
 
         room_request.status = new_status
+        print(f"About to save room request with new status: {room_request.status}")
         room_request.save()
+        print(f"Room request saved successfully")
 
         # If approved → mark room unavailable and reject other pending requests
         if new_status == 'approved':
