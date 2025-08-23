@@ -10,8 +10,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.serializers import SendPasswordResetEmailSerializer, UserPasswordResetSerializer
-
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.views import TokenRefreshView
 User = get_user_model()
 
 class RegisterView(APIView):
@@ -42,27 +44,61 @@ class RegisterView(APIView):
                 'data': str(e),
                 'message': "An error occurred"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+class CustomTokenRefreshView(TokenRefreshView):
+    """
+    Automatically rotates refresh token and blacklists old one
+    """
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if 'refresh' in response.data:
+            response.set_cookie(
+                key='refresh_token',
+                value=response.data['refresh'],
+                httponly=True,
+                secure=True,
+                samesite='Lax',
+                max_age=7*24*60*60
+            )
+        return response
+class LoginView(TokenObtainPairView):
+    serializer_class = LoginSerializer
 
-class LoginView(APIView):
-    def post(self,request):
-        try:
-            serializer  =  LoginSerializer(data=request.data)
-            if not serializer.is_valid():
-                
-                return Response({
-                    'data':serializer.errors,
-                    'message':'Something went wrong'
-                },status=status.HTTP_400_BAD_REQUEST)
-            
-            token_response = serializer.get_jwt_token(serializer.validated_data)
-            return Response(token_response,status=status.HTTP_200_OK)
-        
-        except Exception as e:
-            return Response({
-                'data':{},
-                'message':"An error occured"
-            }, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
 
+        refresh = RefreshToken.for_user(user)
+
+        response = Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'username': user.username,
+                'email': user.email,
+                'role': getattr(user, 'role', 'user')
+            }
+        }, status=status.HTTP_200_OK)
+
+        # Optionally set as HttpOnly cookies
+        response.set_cookie(
+            key='access_token',
+            value=str(refresh.access_token),
+            httponly=True,
+            secure=True,
+            samesite='Lax',
+            max_age=15*60
+        )
+        response.set_cookie(
+            key='refresh_token',
+            value=str(refresh),
+            httponly=True,
+            secure=True,
+            samesite='Lax',
+            max_age=7*24*60*60
+        )
+
+        return response
 class LogoutView(APIView):
     def post(self,request):
         refresh_token = request.data.get('refresh_token')
