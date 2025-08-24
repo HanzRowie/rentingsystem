@@ -77,7 +77,8 @@ class LoginView(TokenObtainPairView):
                 'username': user.username,
                 'email': user.email,
                 'role': getattr(user, 'role', 'user')
-            }
+            },
+            'role': getattr(user, 'role', 'user')  # Also include role at top level for compatibility
         }, status=status.HTTP_200_OK)
 
         # Optionally set as HttpOnly cookies
@@ -113,54 +114,95 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
-        profile = get_object_or_404(Profile, user=request.user)
-        serializer = ProfileSerializers(profile)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        try:
+            profile = Profile.objects.get(user=request.user)
+            serializer = ProfileSerializers(profile)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        except Profile.DoesNotExist:
+            return Response({
+                'phone': '',
+                'address': '',
+                'profile_picture': None
+            }, status=status.HTTP_200_OK)
     
     def post(self,request):
         if Profile.objects.filter(user=request.user).exists():
-            return Response({'error':'Profile already exits'},status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error':'Profile already exists'},status=status.HTTP_400_BAD_REQUEST)
         
         serializer = ProfileSerializers(data=request.data)
         if serializer.is_valid():
-            serializer.save(request.user)
+            serializer.save(user=request.user)
             return Response({
                 'msg':'Profile created successfully'
             },status=status.HTTP_201_CREATED)
 
-        return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self,request):
-        profile = get_object_or_404(Profile,user=request.user)
-        serializer = ProfileSerializers(profile,data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'msg':"Profile Updated Successfully"},status=status.HTTP_200_OK)
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        try:
+            profile = Profile.objects.get(user=request.user)
+            serializer = ProfileSerializers(profile, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'msg':"Profile Updated Successfully"},status=status.HTTP_200_OK)
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        except Profile.DoesNotExist:
+            # If profile doesn't exist, create it
+            serializer = ProfileSerializers(data=request.data)
+            if serializer.is_valid():
+                serializer.save(user=request.user)
+                return Response({'msg':"Profile Created Successfully"},status=status.HTTP_201_CREATED)
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
     def patch(self,request):
-        profile = get_object_or_404(Profile,user = request.user)
-        serializers = ProfileSerializers(profile,data = request.data, partial = True)
-        if serializers.is_valid():
-            serializers.save()
-            return Response({'msg':"profile updated successfully"},status=status.HTTP_200_OK)
-        return Response(serializers.errors,status=status.HTTP_400_BAD_REQUEST)
+        print(f"Profile PATCH request data: {request.data}")  # Debug log
+        try:
+            profile = Profile.objects.get(user=request.user)
+            serializer = ProfileSerializers(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                print("Profile serializer is valid, saving...")  # Debug log
+                serializer.save()
+                return Response({'msg':"Profile updated successfully"},status=status.HTTP_200_OK)
+            else:
+                print(f"Profile serializer errors: {serializer.errors}")  # Debug log
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        except Profile.DoesNotExist:
+            # If profile doesn't exist, create it
+            print("Profile doesn't exist, creating new one...")  # Debug log
+            serializer = ProfileSerializers(data=request.data)
+            if serializer.is_valid():
+                serializer.save(user=request.user)
+                return Response({'msg':"Profile Created Successfully"},status=status.HTTP_201_CREATED)
+            else:
+                print(f"Profile creation serializer errors: {serializer.errors}")  # Debug log
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self,request):
-        profile = get_object_or_404(Profile, user=request.user)
-        profile.delete()
-        return Response({
-            "msg":"Profile successfully deleted"
-        },status=status.HTTP_204_NO_CONTENT)
+        try:
+            profile = Profile.objects.get(user=request.user)
+            profile.delete()
+            return Response({
+                "msg":"Profile successfully deleted"
+            },status=status.HTTP_204_NO_CONTENT)
+        except Profile.DoesNotExist:
+            return Response({
+                "msg":"Profile does not exist"
+            },status=status.HTTP_404_NOT_FOUND)
     
 
 class  UserChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
-    def post(self, request,format = None):
-        serializer  = UserChangePasswordSerializer(data = request.data, context = {'user':request.user})
-        if serializer.is_valid(raise_exception=True):
-            return Response({'msg':'password changed successfully'}, status=status.HTTP_200_OK)
-        return  Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request, format=None):
+        print(f"Password change request data: {request.data}")  # Debug log
+        serializer = UserChangePasswordSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            print("Serializer is valid, saving...")  # Debug log
+            serializer.save()
+            return Response({'msg': 'Password changed successfully'}, status=status.HTTP_200_OK)
+        else:
+            print(f"Serializer errors: {serializer.errors}")  # Debug log
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SendPasswordResetEmail(APIView):
