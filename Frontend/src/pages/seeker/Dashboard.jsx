@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getUserData, logout } from '../../utils/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export default function SeekerDashboard() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalRooms: 0,
     savedRooms: 0,
@@ -20,7 +20,12 @@ export default function SeekerDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
+    // Set user data from auth utility
+    const userData = getUserData();
+    if (userData) {
+      setUser(userData);
+    }
+    
     fetchUserStats();
     fetchNotifications();
     
@@ -42,27 +47,6 @@ export default function SeekerDashboard() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showNotifications]);
-
-  const checkAuth = () => {
-    const token = localStorage.getItem('access_token');
-    const userRole = localStorage.getItem('role');
-    
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    
-    if (userRole !== 'seeker') {
-      navigate('/login');
-      return;
-    }
-
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-    setLoading(false);
-  };
 
   const fetchUserStats = async () => {
     try {
@@ -154,23 +138,8 @@ export default function SeekerDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    navigate('/login');
+    logout();
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -335,6 +304,18 @@ export default function SeekerDashboard() {
                 <p className="text-sm font-medium text-gray-900">Welcome back,</p>
                 <p className="text-sm text-gray-500">{user?.username}</p>
               </div>
+              
+              {/* Profile Icon */}
+              <button
+                onClick={() => navigate('/profile')}
+                className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                title="Profile Settings"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+              
               <button
                 onClick={handleLogout}
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
