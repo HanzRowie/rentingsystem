@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { setAuthData } from '../utils/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -46,27 +47,33 @@ export default function Login() {
 
       const data = await res.json();
       console.log('Response data:', data);
+      console.log('User role from response:', data.user?.role || data.role);
+      console.log('Full user object:', data.user);
+      console.log('Top-level role:', data.role);
       
       if (!res.ok) {
         const msg = data?.message || data?.data || 'Login failed';
         throw new Error(typeof msg === 'string' ? msg : 'Login failed');
       }
 
-      // Store tokens in localStorage
-      localStorage.setItem('access_token', data.access);
-      localStorage.setItem('refresh_token', data.refresh);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('role', data.role);
+      // Store authentication data using utility function
+      const userRole = setAuthData(data);
+      console.log('Stored role:', userRole); // Debug log
+      console.log('localStorage after setAuthData:');
+      console.log('- access_token:', localStorage.getItem('access_token') ? 'EXISTS' : 'MISSING');
+      console.log('- role:', localStorage.getItem('role'));
+      console.log('- user:', localStorage.getItem('user'));
 
       setSuccess('Login successful! Redirecting...');
       
       // Redirect based on role
       setTimeout(() => {
-        if (data.role === 'seeker') {
+        if (userRole === 'seeker') {
           navigate('/seeker/dashboard');
-        } else if (data.role === 'room owner') {
+        } else if (userRole === 'room owner') {
           navigate('/owner/dashboard');
         } else {
+          console.warn('Unknown role, redirecting to default dashboard');
           navigate('/dashboard');
         }
       }, 1000);
