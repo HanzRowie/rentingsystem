@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import Register from './pages/Register.jsx';
 import Login from './pages/Login.jsx';
+import Profile from './pages/Profile.jsx';
 import OwnerDashboard from './pages/owner/Dashboard.jsx';
 import AddRoom from './pages/owner/AddRoom.jsx';
 import ManageRooms from './pages/owner/ManageRooms.jsx';
@@ -18,53 +19,16 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        
-        {/* Protected Seeker Routes */}
-        <Route path="/seeker/dashboard" element={
-          <ProtectedRoute requiredRole="seeker">
-            <SeekerDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/seeker/browse-rooms" element={
-          <ProtectedRoute requiredRole="seeker">
-            <BrowseRooms />
-          </ProtectedRoute>
-        } />
-        <Route path="/seeker/view-requests-seeker" element={
-          <ProtectedRoute requiredRole="seeker">
-            <ViewRequestSeeker />
-          </ProtectedRoute>
-        } />
-        <Route path="/seeker/wishlist" element={
-          <ProtectedRoute requiredRole="seeker">
-            <Wishlist />
-          </ProtectedRoute>
-        } />
-        
-        {/* Protected Owner Routes */}
-        <Route path="/owner/dashboard" element={
-          <ProtectedRoute requiredRole="room owner">
-            <OwnerDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/owner/add-room" element={
-          <ProtectedRoute requiredRole="room owner">
-            <AddRoom />
-          </ProtectedRoute>
-        } />
-        <Route path="/owner/manage-rooms" element={
-          <ProtectedRoute requiredRole="room owner">
-            <ManageRooms />
-          </ProtectedRoute>
-        } />
-        <Route path="/owner/view-requests" element={
-          <ProtectedRoute requiredRole="room owner">
-            <ViewRequest />
-          </ProtectedRoute>
-        } />
-        
-        {/* Default redirect to login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/owner/dashboard" element={<ProtectedRoute requiredRole="room owner"><OwnerDashboard /></ProtectedRoute>} />
+        <Route path="/owner/add-room" element={<ProtectedRoute requiredRole="room owner"><AddRoom /></ProtectedRoute>} />
+        <Route path="/owner/manage-rooms" element={<ProtectedRoute requiredRole="room owner"><ManageRooms /></ProtectedRoute>} />
+        <Route path="/owner/view-requests" element={<ProtectedRoute requiredRole="room owner"><ViewRequest /></ProtectedRoute>} />
+        <Route path="/seeker/dashboard" element={<ProtectedRoute requiredRole="seeker"><SeekerDashboard /></ProtectedRoute>} />
+        <Route path="/seeker/browse-rooms" element={<ProtectedRoute requiredRole="seeker"><BrowseRooms /></ProtectedRoute>} />
+        <Route path="/seeker/view-requests-seeker" element={<ProtectedRoute requiredRole="seeker"><ViewRequestSeeker /></ProtectedRoute>} />
+        <Route path="/seeker/wishlist" element={<ProtectedRoute requiredRole="seeker"><Wishlist /></ProtectedRoute>} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
