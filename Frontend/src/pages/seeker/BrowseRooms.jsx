@@ -416,9 +416,11 @@ export default function BrowseRooms() {
                        {room.photo ? (
                          <div className="relative h-80 lg:h-full">
                            <img 
-                             src={`${API_BASE}${room.photo}`}
+                             src={`${API_BASE}${room.photo.startsWith('/') ? '' : '/'}${room.photo}`}
                              alt={room.title}
-                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 high-quality-image"
+                             loading="lazy"
+                             decoding="async"
                              onError={(e) => {
                                e.target.style.display = 'none';
                                e.target.nextSibling.style.display = 'flex';
