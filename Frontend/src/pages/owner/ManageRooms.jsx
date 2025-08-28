@@ -205,15 +205,28 @@ export default function ManageRooms() {
                 </div>
               </div>
               
-              <button
-                onClick={() => navigate('/owner/add-room')}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add New Room
-              </button>
+              <div className="flex items-center space-x-4">
+                {/* Profile Icon */}
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="relative p-2 text-white hover:text-gray-200 hover:bg-white hover:bg-opacity-10 rounded-lg transition-all duration-200"
+                  title="Profile Settings"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </button>
+                
+                <button
+                  onClick={() => navigate('/owner/add-room')}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add New Room
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -265,9 +278,11 @@ export default function ManageRooms() {
                       {room.photo ? (
                         <div className="relative h-80 lg:h-full">
                           <img 
-                            src={`${API_BASE}${room.photo}`}
+                            src={`${API_BASE}${room.photo.startsWith('/') ? '' : '/'}${room.photo}`}
                             alt={room.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 high-quality-image"
+                            loading="lazy"
+                            decoding="async"
                             onError={(e) => {
                               e.target.style.display = 'none';
                               e.target.nextSibling.style.display = 'flex';
