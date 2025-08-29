@@ -17,6 +17,7 @@ export default function SeekerDashboard() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [markingAsRead, setMarkingAsRead] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,7 +91,15 @@ export default function SeekerDashboard() {
 
   const markNotificationAsRead = async (notificationId) => {
     try {
+      setMarkingAsRead(notificationId);
       const token = localStorage.getItem('access_token');
+      if (!token) {
+        console.error('No access token found');
+        return;
+      }
+
+      console.log('Marking notification as read:', notificationId);
+      
       const response = await fetch(`${API_BASE}/notification/notifications/${notificationId}/mark-read/`, {
         method: 'PATCH',
         headers: {
@@ -99,7 +108,10 @@ export default function SeekerDashboard() {
         }
       });
       
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
+        console.log('Successfully marked notification as read');
         // Update local state
         setNotifications(prev => 
           prev.map(notification => 
@@ -109,9 +121,86 @@ export default function SeekerDashboard() {
           )
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
+      } else {
+        const errorData = await response.text();
+        console.error('Failed to mark notification as read:', response.status, errorData);
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
+    } finally {
+      setMarkingAsRead(null);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        console.error('No access token found');
+        return;
+      }
+
+      console.log('Marking all notifications as read');
+      console.log('Current notifications:', notifications);
+      
+      // Get all unread notification IDs
+      const unreadNotificationIds = notifications
+        .filter(notification => !notification.is_read)
+        .map(notification => notification.id);
+
+      console.log('Unread notification IDs:', unreadNotificationIds);
+
+      if (unreadNotificationIds.length === 0) {
+        console.log('No unread notifications to mark');
+        return;
+      }
+
+      // Mark all unread notifications as read in parallel
+      const promises = unreadNotificationIds.map(async (notificationId) => {
+        console.log(`Sending request to mark notification ${notificationId} as read`);
+        const response = await fetch(`${API_BASE}/notification/notifications/${notificationId}/mark-read/`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(`Response for notification ${notificationId}:`, response.status, response.statusText);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Error response for notification ${notificationId}:`, errorText);
+        }
+        
+        return { id: notificationId, success: response.ok };
+      });
+
+      const results = await Promise.all(promises);
+      console.log('All results:', results);
+      
+      const successfulMarks = results.filter(result => result.success);
+      
+      if (successfulMarks.length > 0) {
+        console.log(`Successfully marked ${successfulMarks.length} notifications as read`);
+        
+        // Update local state - mark all notifications as read
+        setNotifications(prev => 
+          prev.map(notification => ({
+            ...notification,
+            is_read: true
+          }))
+        );
+        
+        // Reset unread count to 0
+        setUnreadCount(0);
+        
+        console.log('Updated notifications state and unread count');
+      } else {
+        console.error('Failed to mark any notifications as read');
+      }
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
     }
   };
 
@@ -158,13 +247,7 @@ export default function SeekerDashboard() {
                   )}
                   {unreadCount > 0 && (
                     <button
-                      onClick={() => {
-                        notifications.forEach(notification => {
-                          if (!notification.is_read) {
-                            markNotificationAsRead(notification.id);
-                          }
-                        });
-                      }}
+                      onClick={() => markAllNotificationsAsRead()}
                       className="text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1 rounded-lg transition-all duration-200"
                     >
                       Mark all read
@@ -209,12 +292,17 @@ export default function SeekerDashboard() {
                       {!notification.is_read && (
                         <button
                           onClick={() => markNotificationAsRead(notification.id)}
-                          className="ml-2 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg transition-all duration-200"
+                          disabled={markingAsRead === notification.id}
+                          className="ml-2 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Mark as read"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
+                          {markingAsRead === notification.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
                         </button>
                       )}
                     </div>
