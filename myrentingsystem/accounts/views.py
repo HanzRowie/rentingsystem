@@ -194,14 +194,14 @@ class  UserChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request, format=None):
-        print(f"Password change request data: {request.data}")  # Debug log
+        print(f"Password change request data: {request.data}") 
         serializer = UserChangePasswordSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
-            print("Serializer is valid, saving...")  # Debug log
+            print("Serializer is valid, saving...")  
             serializer.save()
             return Response({'msg': 'Password changed successfully'}, status=status.HTTP_200_OK)
         else:
-            print(f"Serializer errors: {serializer.errors}")  # Debug log
+            print(f"Serializer errors: {serializer.errors}")  
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
