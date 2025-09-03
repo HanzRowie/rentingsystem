@@ -9,3 +9,4 @@ class NotificationAdmin(admin.ModelAdmin):
     list_filter = ('is_read', 'created_at')
     search_fields = ('title', 'message')
     ordering = ('-created_at',)
+    
