@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -15,12 +15,27 @@ export default function BrowseRooms() {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [wishlistLoading, setWishlistLoading] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchRooms();
     fetchWishlist();
   }, [searchQuery, priceFilter, locationFilter, sortBy, currentPage]);
+
+  useEffect(() => {
+    // Check for success message from navigation state
+    if (location.state?.success) {
+      setSuccessMessage(location.state.success);
+      // Clear the state to prevent showing the message again on refresh
+      navigate(location.pathname, { replace: true });
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 5000);
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const fetchRooms = async () => {
     setLoading(true);
@@ -80,8 +95,15 @@ export default function BrowseRooms() {
     setCurrentPage(1);
   };
 
-  const handleRequestRoom = (roomId) => {
-    navigate(`/seeker/request-room/${roomId}`);
+  const handleRequestRoom = (room) => {
+    console.log('handleRequestRoom called with room:', room);
+    console.log('Room ID:', room.id);
+    console.log('Room is_approved:', room.is_approved);
+    console.log('Room available:', room.available);
+    
+    navigate(`/seeker/request-room/${room.id}`, { 
+      state: { room: room } 
+    });
   };
 
   const handleBack = () => {
@@ -375,6 +397,18 @@ export default function BrowseRooms() {
             </form>
           </div>
 
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-6 bg-green-500 bg-opacity-20 border border-green-400 text-green-100 px-4 py-3 rounded-xl backdrop-blur-sm">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{successMessage}</span>
+              </div>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-500 bg-opacity-20 border border-red-400 text-red-100 px-4 py-3 rounded-xl backdrop-blur-sm">
@@ -563,7 +597,7 @@ export default function BrowseRooms() {
 
                          {/* Request Room Button */}
                          <button
-                           onClick={() => handleRequestRoom(room.id)}
+                           onClick={() => handleRequestRoom(room)}
                            disabled={!room.is_approved || !room.available}
                            className={`flex-1 px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-lg ${
                              room.is_approved && room.available
