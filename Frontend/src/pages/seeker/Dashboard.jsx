@@ -18,6 +18,8 @@ export default function SeekerDashboard() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [markingAsRead, setMarkingAsRead] = useState(null);
+  const [lastNotificationCount, setLastNotificationCount] = useState(0);
+  const [isMarkingAllAsRead, setIsMarkingAllAsRead] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,9 +33,13 @@ export default function SeekerDashboard() {
     fetchNotifications();
     
     // Set up polling for notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    const interval = setInterval(() => {
+      if (!isMarkingAllAsRead) {
+        fetchNotifications();
+      }
+    }, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isMarkingAllAsRead]);
 
   // Handle click outside notifications dropdown
   useEffect(() => {
@@ -80,6 +86,18 @@ export default function SeekerDashboard() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('=== FETCHED NOTIFICATIONS DATA (SEEKER) ===');
+        console.log('Raw notification data:', data);
+        console.log('Number of notifications:', data.length);
+        data.forEach((notification, index) => {
+          console.log(`Notification ${index + 1}:`, {
+            id: notification.id,
+            title: notification.title,
+            message: notification.message,
+            is_read: notification.is_read,
+            created_at: notification.created_at
+          });
+        });
         handleNewNotification(data);
       } else {
         console.error('Failed to fetch notifications:', response.status, response.statusText);
@@ -121,6 +139,12 @@ export default function SeekerDashboard() {
           )
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
+        
+        // Hide toast if this was the last unread notification
+        const remainingUnread = notifications.filter(n => !n.is_read && n.id !== notificationId).length;
+        if (remainingUnread === 0) {
+          setShowToast(false);
+        }
       } else {
         const errorData = await response.text();
         console.error('Failed to mark notification as read:', response.status, errorData);
@@ -133,15 +157,19 @@ export default function SeekerDashboard() {
   };
 
   const markAllNotificationsAsRead = async () => {
+    console.log('=== MARK ALL READ FUNCTION CALLED (SEEKER) ===');
     try {
+      setIsMarkingAllAsRead(true);
       const token = localStorage.getItem('access_token');
       if (!token) {
         console.error('No access token found');
+        setIsMarkingAllAsRead(false);
         return;
       }
 
       console.log('Marking all notifications as read');
       console.log('Current notifications:', notifications);
+      console.log('Notifications length:', notifications.length);
       
       // Get all unread notification IDs
       const unreadNotificationIds = notifications
@@ -152,13 +180,17 @@ export default function SeekerDashboard() {
 
       if (unreadNotificationIds.length === 0) {
         console.log('No unread notifications to mark');
+        setIsMarkingAllAsRead(false);
         return;
       }
 
       // Mark all unread notifications as read in parallel
       const promises = unreadNotificationIds.map(async (notificationId) => {
+        const url = `${API_BASE}/notification/notifications/${notificationId}/mark-read/`;
         console.log(`Sending request to mark notification ${notificationId} as read`);
-        const response = await fetch(`${API_BASE}/notification/notifications/${notificationId}/mark-read/`, {
+        console.log(`API URL: ${url}`);
+        console.log(`API_BASE: ${API_BASE}`);
+        const response = await fetch(url, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -171,6 +203,9 @@ export default function SeekerDashboard() {
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`Error response for notification ${notificationId}:`, errorText);
+        } else {
+          const responseData = await response.json();
+          console.log(`Success response for notification ${notificationId}:`, responseData);
         }
         
         return { id: notificationId, success: response.ok };
@@ -195,21 +230,45 @@ export default function SeekerDashboard() {
         // Reset unread count to 0
         setUnreadCount(0);
         
+        // Hide any existing toast
+        setShowToast(false);
+        
         console.log('Updated notifications state and unread count');
+        
+        // Wait a bit before allowing polling to resume to ensure backend changes are processed
+        setTimeout(() => {
+          setIsMarkingAllAsRead(false);
+          // Refresh notifications to ensure UI is in sync with backend
+          fetchNotifications();
+        }, 1000);
       } else {
         console.error('Failed to mark any notifications as read');
+        setIsMarkingAllAsRead(false);
       }
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      setIsMarkingAllAsRead(false);
     }
   };
 
   const handleNewNotification = (newNotifications) => {
-    const previousUnreadCount = unreadCount;
-    const newUnreadCount = newNotifications.filter(n => !n.is_read).length;
+    console.log('=== HANDLING NEW NOTIFICATIONS (SEEKER) ===');
+    console.log('Previous notifications count:', notifications.length);
+    console.log('New notifications count:', newNotifications.length);
     
-    // Show toast for new notifications
-    if (newUnreadCount > previousUnreadCount) {
+    const newUnreadCount = newNotifications.filter(n => !n.is_read).length;
+    console.log('Calculated unread count:', newUnreadCount);
+    
+    // Log each notification's read status
+    newNotifications.forEach((notification, index) => {
+      console.log(`Notification ${index + 1} is_read status:`, notification.is_read, typeof notification.is_read);
+    });
+    
+    const previousNotificationCount = notifications.length;
+    const currentNotificationCount = newNotifications.length;
+    
+    // Show toast only for genuinely new notifications (not on initial load or when marking as read)
+    if (currentNotificationCount > previousNotificationCount && previousNotificationCount > 0 && !isMarkingAllAsRead) {
       const latestNotification = newNotifications.filter(n => !n.is_read)[0];
       if (latestNotification) {
         setToastMessage(latestNotification.message);
@@ -222,8 +281,11 @@ export default function SeekerDashboard() {
       }
     }
     
+    console.log('Setting notifications and unread count...');
     setNotifications(newNotifications);
     setUnreadCount(newUnreadCount);
+    setLastNotificationCount(currentNotificationCount);
+    console.log('=== END HANDLING NEW NOTIFICATIONS (SEEKER) ===');
   };
 
   const handleLogout = () => {
@@ -241,16 +303,41 @@ export default function SeekerDashboard() {
             <div className="p-4 border-b border-white/20">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 notifications-container">
                   {unreadCount > 0 && (
                     <span className="text-sm text-gray-500">{unreadCount} unread</span>
                   )}
+                  {console.log('Rendering mark all read button (SEEKER). Unread count:', unreadCount, 'isMarkingAllAsRead:', isMarkingAllAsRead)}
                   {unreadCount > 0 && (
                     <button
-                      onClick={() => markAllNotificationsAsRead()}
-                      className="text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1 rounded-lg transition-all duration-200"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('=== BUTTON CLICKED (SEEKER) ===');
+                        console.log('Button clicked! Unread count:', unreadCount);
+                        alert('Mark all read button clicked! Check console for details.');
+                        markAllNotificationsAsRead();
+                      }}
+                      disabled={isMarkingAllAsRead}
+                      style={{ 
+                        pointerEvents: isMarkingAllAsRead ? 'none' : 'auto',
+                        zIndex: 9999,
+                        position: 'relative'
+                      }}
+                      className={`text-sm px-3 py-1 rounded-lg transition-all duration-200 flex items-center space-x-1 ${
+                        isMarkingAllAsRead 
+                          ? 'opacity-50 cursor-not-allowed text-gray-400' 
+                          : 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer'
+                      }`}
                     >
-                      Mark all read
+                      {isMarkingAllAsRead ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                          <span>Marking...</span>
+                        </>
+                      ) : (
+                        <span>Mark all read</span>
+                      )}
                     </button>
                   )}
                 </div>
