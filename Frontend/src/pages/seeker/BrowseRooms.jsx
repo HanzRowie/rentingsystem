@@ -22,7 +22,13 @@ export default function BrowseRooms() {
   useEffect(() => {
     fetchRooms();
     fetchWishlist();
-  }, [searchQuery, priceFilter, locationFilter, sortBy, currentPage]);
+  }, [currentPage]);
+
+  useEffect(() => {
+    // Reset to page 1 when search/filter/sort changes
+    setCurrentPage(1);
+    fetchRooms();
+  }, [searchQuery, priceFilter, locationFilter, sortBy]);
 
   useEffect(() => {
     // Check for success message from navigation state
@@ -48,13 +54,10 @@ export default function BrowseRooms() {
       if (priceFilter) params.append('price', priceFilter);
       if (locationFilter) params.append('location', locationFilter);
       if (currentPage > 1) params.append('page', currentPage);
+      if (sortBy) params.append('sort', sortBy);
 
-      let url = `${API_BASE}/seeker/room-list/`;
-      
-      // If sorting is applied, use the sort endpoint
-      if (sortBy !== 'newest') {
-        url = `${API_BASE}/seeker/roomsort/${sortBy}/`;
-      }
+      // Use search endpoint for all queries (it handles search, filter, and sort)
+      let url = `${API_BASE}/seeker/search/`;
 
       if (params.toString()) {
         url += `?${params.toString()}`;
@@ -72,7 +75,8 @@ export default function BrowseRooms() {
         setRooms(data);
         setHasNextPage(data.length === 2); // Assuming pagination size is 2
       } else {
-        setError('Failed to fetch rooms');
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to fetch rooms');
       }
     } catch (err) {
       setError('Network error. Please try again.');
@@ -84,7 +88,7 @@ export default function BrowseRooms() {
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
-    fetchRooms();
+    // fetchRooms will be called automatically by useEffect when currentPage changes
   };
 
   const handleClearFilters = () => {
@@ -93,6 +97,7 @@ export default function BrowseRooms() {
     setLocationFilter('');
     setSortBy('newest');
     setCurrentPage(1);
+    // fetchRooms will be called automatically by useEffect when these values change
   };
 
   const handleRequestRoom = (room) => {
