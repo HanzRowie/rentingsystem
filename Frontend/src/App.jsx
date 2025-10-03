@@ -11,6 +11,7 @@ import SeekerDashboard from './pages/seeker/Dashboard.jsx';
 import BrowseRooms from './pages/seeker/BrowseRooms.jsx';
 import ViewRequestSeeker from './pages/seeker/ViewRequestseeker.jsx';
 import Wishlist from './pages/seeker/Wishlist.jsx';
+import RequestRoom from './pages/seeker/RequestRoom.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route path="/owner/view-requests" element={<ProtectedRoute requiredRole="room owner"><ViewRequest /></ProtectedRoute>} />
         <Route path="/seeker/dashboard" element={<ProtectedRoute requiredRole="seeker"><SeekerDashboard /></ProtectedRoute>} />
         <Route path="/seeker/browse-rooms" element={<ProtectedRoute requiredRole="seeker"><BrowseRooms /></ProtectedRoute>} />
+        <Route path="/seeker/request-room/:roomId" element={<ProtectedRoute requiredRole="seeker"><RequestRoom /></ProtectedRoute>} />
         <Route path="/seeker/view-requests-seeker" element={<ProtectedRoute requiredRole="seeker"><ViewRequestSeeker /></ProtectedRoute>} />
         <Route path="/seeker/wishlist" element={<ProtectedRoute requiredRole="seeker"><Wishlist /></ProtectedRoute>} />
         <Route path="/" element={<Navigate to="/login" replace />} />
