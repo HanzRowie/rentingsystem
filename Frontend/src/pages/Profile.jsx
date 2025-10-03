@@ -360,9 +360,6 @@ export default function Profile() {
                       }`}
                       placeholder="Enter your phone number"
                     />
-                    {isEditing && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    )}
                   </div>
                 </div>
 
@@ -381,9 +378,6 @@ export default function Profile() {
                       }`}
                       placeholder="Enter your address"
                     />
-                    {isEditing && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    )}
                   </div>
                 </div>
 
@@ -436,7 +430,6 @@ export default function Profile() {
                         className="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-purple-200 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
                         placeholder="Enter current password"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                   </div>
 
@@ -450,7 +443,6 @@ export default function Profile() {
                         className="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-purple-200 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
                         placeholder="Enter new password"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                   </div>
 
@@ -464,7 +456,6 @@ export default function Profile() {
                         className="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-purple-200 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
                         placeholder="Confirm new password"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                   </div>
 
