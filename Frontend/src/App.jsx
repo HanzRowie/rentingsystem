@@ -13,6 +13,9 @@ import ViewRequestSeeker from './pages/seeker/ViewRequestseeker.jsx';
 import Wishlist from './pages/seeker/Wishlist.jsx';
 import RequestRoom from './pages/seeker/RequestRoom.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
+import ResetPasswordError from './pages/ResetPasswordError.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
 
 function App() {
   return (
@@ -20,6 +23,9 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password-error" element={<ResetPasswordError />} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/owner/dashboard" element={<ProtectedRoute requiredRole="room owner"><OwnerDashboard /></ProtectedRoute>} />
         <Route path="/owner/add-room" element={<ProtectedRoute requiredRole="room owner"><AddRoom /></ProtectedRoute>} />
