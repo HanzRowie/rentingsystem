@@ -8,10 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 from seeker.models import RoomRequest  # Import RoomRequest model
 from seeker.serializers import RoomRequestSerializer  # Serializer for RoomRequest
 
-# Define or import your custom permission IsOwner
+
 from accounts.permissions import IsRoomOwner
 
-# Create your views here.
+
 
 class RoomView(APIView):
     permission_classes = [IsAuthenticated, IsRoomOwner]  
